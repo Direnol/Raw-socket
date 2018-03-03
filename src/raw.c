@@ -1,5 +1,6 @@
 #include "../headers/raw.h"
 
+
 void set_transport_level(udphdr_t *header, uint16_t src_p, uint16_t dst_p, uint16_t len)
 {
     if (!header) return;
@@ -33,4 +34,13 @@ void print_header(udphdr_t *h)
     uint16_t len_msg = ntohs(h->len) - sizeof(*h);
     printf("Len : %d [%d]; Msg %hu, struct %hu\n", ntohs(h->len), h->len, len_msg, htons(h->len) - len_msg);
     printf("src %hu dst %hu check %hu\n", ntohs(h->source), ntohs(h->dest), ntohs(h->check));
+}
+
+int recv_raw(int fd, struct sockaddr_in *get, char *buf, udphdr_t *serv)
+{
+    socklen_t socklen = sizeof(*get);
+    ssize_t ret = recvfrom(fd, buf, UINT16_MAX, 0, (struct sockaddr *) get, &socklen);
+    if (serv->dest == get->sin_port) return (int) ret;
+    else if (ret < 0) return -1;
+    return 0;
 }

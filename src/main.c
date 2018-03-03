@@ -25,6 +25,17 @@ int main(int argc, char **argv)
     if (send_raw(fd, &head, &serv, msg)) {
         perror("Send raw");
     }
+    struct sockaddr_in get;
+    int ret = 0;
+    while ((ret = recv_raw(fd, &get, msg, &head)) <= 0) {
+        if (ret < 0) {
+            perror("Get msg");
+            break;
+        }
+    }
+    if (ret > 0) {
+        printf("Get msg [%s]\n", msg);
+    }
     close(fd);
     return EXIT_SUCCESS;
 }
