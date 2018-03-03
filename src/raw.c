@@ -40,7 +40,14 @@ int recv_raw(int fd, struct sockaddr_in *get, char *buf, udphdr_t *serv)
 {
     socklen_t socklen = sizeof(*get);
     ssize_t ret = recvfrom(fd, buf, UINT16_MAX, 0, (struct sockaddr *) get, &socklen);
-    if (serv->dest == get->sin_port) return (int) ret;
-    else if (ret < 0) return -1;
+    struct iphdr *net = (struct iphdr *) buf;
+    struct udphdr *uh = (struct udphdr *) (buf + sizeof(*net));
+    if (serv->dest == uh->source) {
+        printf("ttl %d\n", net->ttl);
+        size_t n = ret - sizeof(*net) + sizeof(*uh);
+        memmove(buf, buf + sizeof(struct iphdr) + sizeof(struct udphdr), n);
+        return (int) n;
+    }
+    if (ret < 0) return -1;
     return 0;
 }
