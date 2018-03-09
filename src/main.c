@@ -15,27 +15,39 @@ int main(int argc, char **argv)
     int fd;
     struct sockaddr_in serv;
     printf("ip [%s]; msg [%s]\n", ip, msg);
-    if ((fd = init_addr(&serv, AF_INET, ip, dport)) < 0) {
+    if ((fd = init_addr(&serv, AF_INET, ip, dport, 0)) < 0) {
         perror("Init");
         return EXIT_FAILURE;
     }
-    udphdr_t head;
-    set_transport_level(&head, sport, dport, (uint16_t) (strlen(msg) + 1));
-    print_header(&head);
-    if (send_raw(fd, &head, &serv, msg)) {
+    udphdr_t udph;
+    struct iphdr iph;
+    set_transport_level(&udph, sport, dport, (uint16_t) (strlen(msg) + 1));
+    set_ip_level(fd, &iph, (uint16_t) (strlen(msg) + sizeof(udph) + 1), serv, inet_addr("127.0.2.1"));
+    print_header_udp(&udph);
+    /*if (send_raw_udp(fd, &udph, &serv, msg)) {
         perror("Send raw");
+    }*/
+    int err = 0;
+    err = send_raw_ip(fd, &iph, &udph, &serv, msg);
+    if (err) {
+        perror("send raw");
+        goto end;
     }
+    goto end;
     struct sockaddr_in get;
     int ret = 0;
-    while ((ret = recv_raw(fd, &get, msg, &head)) <= 0) {
+    while ((ret = recv_raw(fd, &get, msg, &udph)) <= 0) {
         if (ret < 0) {
             perror("Get msg");
             break;
         }
     }
     if (ret > 0) {
-        printf("Get msg [%s]\n", msg);
+        print_header_ip((struct iphdr *) msg);
+        print_header_udp((udphdr_t *) (msg + sizeof(struct iphdr)));
+        printf("Msg [%s]\n", msg + sizeof(struct iphdr) + sizeof(udphdr_t));
     }
+    end:
     close(fd);
     return EXIT_SUCCESS;
 }
