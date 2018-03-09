@@ -31,6 +31,7 @@ int init_addr(struct sockaddr_in *serv, sa_family_t family, char *ip, uint16_t p
 }
 void print_header_udp(udphdr_t *h)
 {
+    puts("TRANSPORT UDP:");
     uint16_t len_msg = ntohs(h->len) - sizeof(*h);
     printf("Len : %d [%d]; Msg %hu, struct %hu\n", ntohs(h->len), h->len, len_msg, htons(h->len) - len_msg);
     printf("src %hu dst %hu check %hu\n", ntohs(h->source), ntohs(h->dest), ntohs(h->check));
@@ -87,5 +88,9 @@ void print_header_ip(struct iphdr *h)
     struct in_addr _ip[2];
     _ip[0].s_addr = h->saddr;
     _ip[1].s_addr = h->daddr;
-    printf("src [%s] dst [%s]\n", inet_ntoa(_ip[0]), inet_ntoa(_ip[1]));
+    char *src = strdup(inet_ntoa(_ip[0]));
+    char *dst = strdup(inet_ntoa(_ip[1]));
+    printf("IP : src [%s] dst [%s]\n", src, dst);
+    free(src);
+    free(dst);
 }
