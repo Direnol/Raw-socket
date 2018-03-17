@@ -3,4 +3,4 @@ project(Raw_socket C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(Raw_socket src/main.c src/raw.c headers/raw.h)
+add_executable(Raw_socket src/main.c src/raw.c headers/raw.h src/crc16.c headers/crc16.h)
